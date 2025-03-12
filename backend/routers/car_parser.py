@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from sqlalchemy.orm import Session
 
 import requests
@@ -18,9 +18,17 @@ def create_db_car(car_in: CarIn) -> Car:
     db_car = Car(**car_in.model_dump())
     return db_car
 
-@router.get("/{vin}/{user}/{token}")
-async def get_car_info(vin: str, user: str, token: str, db: Session = Depends(get_db)):
-    # Формируем URL для запроса
+@router.post("/")
+async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
+    user = "international_dofenspot"
+    token = "dd335f3f68b147d36b7af505367a360c"
+
+    existing_car = db.query(Car).filter(Car.vin_id == vin).first()
+
+    if existing_car:
+        return existing_car
+    
+    # TO-DO: Сгенерировать создание токена по VIN'у
     url = f"{BASE_URL}/?vin={vin}&user={user}&token={token}"
     print(url)
     
@@ -68,7 +76,7 @@ async def get_car_info(vin: str, user: str, token: str, db: Session = Depends(ge
     price = model_list["Price"]
     price_unit = model_list["Price_unit"]
 
-    db_car = create_db_car(CarIn(
+    car_in = CarIn(
         vin_id=vin,
         model_year_from_vin=model_year_from_vin,
         model_year=model_year,
@@ -93,9 +101,10 @@ async def get_car_info(vin: str, user: str, token: str, db: Session = Depends(ge
         body_type=body_type,
         price=price,
         price_unit=price_unit
-    ))    
+    )
+    db_car = create_db_car(car_in)    
 
     db.add(db_car)
     db.commit()
 
-    return part_data
+    return car_in
