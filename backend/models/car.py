@@ -10,6 +10,8 @@ class Car(Base):
     model_year = Column(String)
     made_in = Column(String)
     model_detail = Column(String)
+    epc = Column(String)
+    epc_id = Column(String)
     brand = Column(String)
     factory = Column(String)
     series = Column(String)
