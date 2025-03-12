@@ -1,13 +1,46 @@
 <!DOCTYPE html>
-<html lang="">
-  <head>
+<html lang="ru">
+<head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+    <title>Получение информации об автомобиле по VIN</title>
+</head>
+<body>
+    <h1>Введите VIN-код автомобиля</h1>
+    <input type="text" id="vinInput" placeholder="Введите VIN">
+    <button onclick="getCarInfo()">Получить информацию</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function getCarInfo() {
+            const vin = document.getElementById('vinInput').value;
+
+            if (!vin) {
+                alert('Пожалуйста, введите VIN-код.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/car_info/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ vin: vin })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при получении данных');
+                }
+
+                const data = await response.json();
+                document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('result').innerText = 'Произошла ошибка при запросе к серверу.';
+            }
+        }
+    </script>
+</body>
 </html>
