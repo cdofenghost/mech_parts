@@ -16,13 +16,14 @@ def create_db_car(car_in: CarIn) -> Car:
     return db_car
 
 
-@router.post("/get_car_info", tags=["Пункт 4"]) #3001
+@router.post("/get_car_info", tags=["Пункт 3"]) #3001
 async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
     '''
     https://www.17vin.com/doc.html. Раздел 3001.\n
     Выдает информацию о модели машину по заданному VIN.
     '''
-    token = "c2181f8363ad0d0ef892c611140244e2"
+    url_parameters = f"/?vin={vin}"
+    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
 
     existing_car = db.query(Car).filter(Car.vin_id == vin).first()
 
@@ -30,7 +31,7 @@ async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db
         return existing_car
     
     # TO-DO: Сгенерировать создание токена по VIN'у
-    url = f"{BASE_URL}/?vin={vin}&user={USER}&token={token}"
+    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
     print(url)
     
     # Выполняем GET-запрос к API VIN17
@@ -122,7 +123,8 @@ async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db
 async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = Body(embed=True)):
     '''
     https://www.17vin.com/doc.html. Раздел 4002.\n
-    Поиск в списке категорий.
+    Поиск в списке категорий.\n
+    Тест кейс: epc=toyota query_part_number=091140G010
     ???
     '''
     url_parameters = f"/{epc}?action=search_illustration&query_part_number={query_part_number}"
@@ -146,6 +148,8 @@ async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = B
 async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match_type: str = Body(embed=True, default="smart")):
     '''
     https://www.17vin.com/doc.html. Раздел 4001.\n
+    Тест кейс: query_part_number={query_part_number} query_match_type={query_match_type}\n
+
     Выдает запчасть по ее номеру запчасти/аксессуара - <b>query_part_number.</b>\n
     <b>query_match_type</b> - необязательно. Означает тип поиска, принимает строки 3 видов:\n
         "exact" - строгий поиск\n
@@ -171,6 +175,7 @@ async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match
 async def get_interchange_by_pn_and_group_id(part_number: str = Body(embed=True), group_id: str = Body(embed=True)):
     '''
     Раздел 4004.\n
+    Тест кейс: part_number=6RD615301 group_id=2\n
     Получить номер замены через номер акссесуара/запчасти (номер детали бренда).
     '''
     url_parameters = f"/?action=get_interchange_from_part_number_and_group_id_plus_zh&part_number={part_number}&group_id={group_id}"
@@ -213,7 +218,8 @@ async def get_parts_info_by_brand_and_qpn(brand: str = Body(embed=True),
                                           query_part_number: str = Body(embed=True), 
                                           query_match_type: str = Body(embed=True, default="smart")):
     '''
-    Раздел 40071.
+    Раздел 40071.\n
+    Тест кейс: manufacturer_brand=Jingshi Information Technology Co., Ltd. query_part_number=JSB00001&query_match_type=smart\n
     '''
 
     url_parameters = f"/?action=aftermarket_private_part_search&manufacturer_brand={brand}&query_part_number={query_part_number}&query_match_type={query_match_type}"
@@ -237,7 +243,8 @@ async def get_parts_info_by_brand_and_qpn(brand: str = Body(embed=True),
 async def get_all_part_numbers_from_vin(epc: str = Body(embed=True), 
                                         vin: str = Body(embed=True)):
     '''
-    Раздел 5109.
+    Раздел 5109.\n
+    Тестовый запрос: http://api.17vin.com:8080/toyota?action=all_part_number&vin=LFMGJE720DS070251&user=international_dofenspot&token=442fc8ce6e38fcbc1f74f92e4be5a9fa
     '''
     url_parameters = f"/{epc}?action=all_part_number&vin={vin}"
     token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
@@ -341,6 +348,29 @@ async def get_accessories_list(epc: str = Body(embed=True),
                                last_cata_code_level: str = Body()):
     
     url_parameters = f"/{epc}?action=part&vin={vin}&last_cata_code={last_cata_code}&last_cata_code_level={last_cata_code_level}"
+    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
+
+    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
+    
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Ошибка при запросе данных")
+    
+    # Преобразуем ответ в JSON
+    part_data = response.json()
+
+    return part_data
+
+@router.post("/get_spare_parts_by_vin", tags=["Пункт 7"]) # 7001
+async def get_spare_parts_by_vin(vin: str = Body(embed=True),
+                                 brand: str = Body(embed=True),
+                                 category: str = Body(embed=True)):
+    '''
+    Раздел 7001. Поиск запчастей по VIN-коду.
+    Тест кейс: vin=LFMGJE720DS070251 manufacturer_brand=Bosch category=Filter
+    '''
+    url_parameters = f"/?action=aftermarket_vin&vin={vin}&manufacturer_brand={brand}&category={category}"
     token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
 
     url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
