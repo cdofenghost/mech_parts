@@ -5,60 +5,59 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import time
-
 BASE_PRICE_URL = "https://baza.drom.ru/oem"
 
 def get_prices(part_number: str) -> list[float]:
-    """Получает список цен для запчасти с указанным OEM-номером, дожидаясь загрузки страницы."""
-
+    """Быстро получает список цен для запчасти с указанным OEM-номером."""
+    
     url = f"{BASE_PRICE_URL}/{part_number}/"
 
-    # Настройки для браузера
+    # Оптимизированные настройки Chrome
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Фоновый режим без UI
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--headless")  # Запуск без UI
+    chrome_options.add_argument("--disable-gpu")  # Отключение GPU для ускорения
+    chrome_options.add_argument("--no-sandbox")  # Улучшение стабильности
+    chrome_options.add_argument("--disable-dev-shm-usage")  
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Скрытие Selenium
+    chrome_options.add_argument("--blink-settings=imagesEnabled=false")  # Отключение загрузки картинок
 
-    service = Service()  # Использует системный ChromeDriver
+    service = Service()  
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
         driver.get(url)
 
-        # Ждём, пока появятся элементы с ценами (до 10 секунд)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "price-block__price"))
+        # Ожидание минимального количества элементов (ускоряет процесс)
+        WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "price-block__price"))
         )
 
-        # Собираем все найденные элементы с ценами
-        price_elements = driver.find_elements(By.CLASS_NAME, "price-block__price")
+        # Получение цен напрямую через JavaScript (быстрее, чем find_elements)
+        prices = driver.execute_script("""
+            return [...document.querySelectorAll('.price-block__price')]
+                .map(el => el.innerText.replace('₽', '').replace(/\s/g, ''))
+                .filter(text => !isNaN(text))
+                .map(Number);
+        """)
 
-        price_list = []
-        for price_element in price_elements:
-            price_text = price_element.text.strip().replace(" ", "").replace("₽", "")
-            try:
-                price_list.append(float(price_text))
-            except ValueError:
-                continue
+        if not prices:
+            raise Exception("Цены не найдены")
 
-        if not price_list:
-            raise Exception("Не удалось найти цены на странице")
-
-        return price_list
+        return prices
 
     finally:
         driver.quit()
 
 def get_average_price(part_number: str) -> float:
     """Возвращает среднюю цену детали."""
+    prices = get_prices(part_number)
+    return sum(prices) / len(prices) if prices else 0
+
+if __name__ == "__main__":
+    part_number = "51350SAAE01"
     try:
         prices = get_prices(part_number)
-        print(f"{(sum(prices) / len(prices)):.2f}")
-        return f"{(sum(prices) / len(prices)):.2f}" if prices else 0
+        print(f"Цены: {prices}")
+        print(f"Средняя цена: {get_average_price(part_number):.2f} ₽")
     except Exception as e:
         print(f"Ошибка: {e}")
-        return 0
-
