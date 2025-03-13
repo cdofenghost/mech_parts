@@ -1,22 +1,34 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
+from models import PartSearchHistory  # Предполагается, что у тебя есть модель истории запросов
 
-class Base(DeclarativeBase): 
+class Base(DeclarativeBase):
     pass
 
 DATABASE_URL = "postgresql://postgres:dofenbase@localhost:5432/MechaBase"
 
 engine = create_engine(DATABASE_URL)
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_engine():
-    return engine
 
 def get_db():
     db = SessionLocal()
     try:
         yield db
-        
     finally:
         db.close()
+
+def init_db():
+    """Создает таблицы в базе данных."""
+    Base.metadata.create_all(bind=engine)
+
+def get_frequent_parts(limit=10):
+    """Получает список самых популярных запчастей."""
+    with SessionLocal() as db:
+        result = db.execute(select(PartSearchHistory.part_name).order_by(PartSearchHistory.search_count.desc()).limit(limit))
+        return [row[0] for row in result.fetchall()]
+
+def get_user_search_history(user_id):
+    """Получает историю поиска запчастей пользователя."""
+    with SessionLocal() as db:
+        result = db.execute(select(PartSearchHistory.part_name).where(PartSearchHistory.user_id == user_id))
+        return [row[0] for row in result.fetchall()]
