@@ -2,10 +2,21 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from ..database import Base
 
+class Part(Base):
+    __tablename__ = "parts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    brand_name = Column(String)
+    group_id = Column(String)
+    part_number = Column(String)
+
+
 class Car(Base):
     __tablename__ = "cars"
 
     vin_id = Column(String, primary_key=True, index=True)
+    part_number_list = Column(String)
     model_year_from_vin = Column(String)
     model_year = Column(String)
     made_in = Column(String)

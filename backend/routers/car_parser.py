@@ -16,7 +16,7 @@ def create_db_car(car_in: CarIn) -> Car:
     return db_car
 
 
-@router.post("/get_car_info", tags=["Пункт 3"]) #3001
+@router.post("/get_car_info", tags=["Пункт 3"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
 async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
     '''
     https://www.17vin.com/doc.html. Раздел 3001.\n
@@ -119,6 +119,38 @@ async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db
 
     return part_data
 
+def get_all_part_numbers_sync(epc: str, vin: str) -> str:
+    url_parameters = f"/{epc}?action=all_part_number&vin={vin}"
+    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
+
+    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Ошибка при запросе данных")
+    
+    # Преобразуем ответ в JSON
+    part_data = response.json()
+
+    return part_data["data"]
+
+def part_info(part_number: str):
+    url_parameters = f"/?action=search_epc&query_part_number={part_number}&query_match_type=smart"
+    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
+
+    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
+    
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Ошибка при запросе данных")
+    
+    # Преобразуем ответ в JSON
+    part_data = response.json()
+
+    return part_data["data"]
+
 @router.post("/get_parts_info", tags=["Пункт 4"]) #4002
 async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = Body(embed=True)):
     '''
@@ -142,9 +174,9 @@ async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = B
     # Преобразуем ответ в JSON
     part_data = response.json()
 
-    return part_data
+    return part_data["data"]
 
-@router.post("/get_part_by_qpn", tags=["Пункт 4"]) #4001
+@router.post("/get_part_by_qpn", tags=["Пункт 4"]) #4001 (ПОИСК ПО НОМЕРУ)
 async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match_type: str = Body(embed=True, default="smart")):
     '''
     https://www.17vin.com/doc.html. Раздел 4001.\n
@@ -169,7 +201,7 @@ async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match
     # Преобразуем ответ в JSON
     part_data = response.json()
 
-    return part_data
+    return part_data["data"]
 
 @router.post("/get_interchange", tags=["Пункт 4"]) #4004
 async def get_interchange_by_pn_and_group_id(part_number: str = Body(embed=True), group_id: str = Body(embed=True)):
@@ -213,7 +245,7 @@ async def get_accessories_list_by_catalogue_code(epc: str = Body(embed=True), ca
 
     return part_data
 
-@router.post("/get_parts_info", tags=["Пункт 4"]) # 40071
+@router.post("/get_parts_info_by_qpn", tags=["Пункт 4"]) # 40071
 async def get_parts_info_by_brand_and_qpn(brand: str = Body(embed=True), 
                                           query_part_number: str = Body(embed=True), 
                                           query_match_type: str = Body(embed=True, default="smart")):
@@ -384,5 +416,3 @@ async def get_spare_parts_by_vin(vin: str = Body(embed=True),
     part_data = response.json()
 
     return part_data
-
-
