@@ -11,7 +11,11 @@ from .services import (
 )
 from .models import User
 from ..models.car import Part
+from .services import SECRET_KEY
+
 from pydantic import BaseModel
+from passlib.hash import bcrypt
+
 
 auth_router = APIRouter(prefix="/auth")
 
@@ -41,17 +45,23 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     user = register_user(user_data.username, user_data.password, db)
     return {"message": "Регистрация успешна", "user_id": user.id}
 
+
 @auth_router.post("/login")
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Авторизация пользователя."""
     print("Hello")
     user = db.query(User).filter_by(username=user_data.username).first()
-    if not user or not user.password:
-        raise HTTPException(status_code=401, detail="Неверные учетные данные")
-
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="Данной учетной записи не существует. Попробуйте зарегистрироваться!")
+    
+    if not bcrypt.verify(user_data.password, user.password):
+        raise HTTPException(status_code=403, detail="Проверьте правильность введенных данных!")
+    
     access_token = generate_access_token(user)
     refresh_token = generate_refresh_token(user, db)
     return {"access_token": access_token, "refresh_token": refresh_token}
+
 
 @auth_router.post("/refresh")
 async def refresh(token_data: TokenRefresh, db: Session = Depends(get_db)):
@@ -63,10 +73,12 @@ async def refresh(token_data: TokenRefresh, db: Session = Depends(get_db)):
     access_token = generate_access_token(user)
     return {"access_token": access_token}
 
+
 @auth_router.post("/logout")
 async def logout(token_data: TokenRefresh, db: Session = Depends(get_db)):
     """Выход из системы (удаление refresh-токена)."""
     return logout_user(token_data.refresh_token, db)
+
 
 @auth_router.post("/revoke")
 async def revoke(token_data: TokenRefresh, db: Session = Depends(get_db)):

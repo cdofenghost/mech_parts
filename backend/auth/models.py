@@ -7,7 +7,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False)
-    password = Column(String(100), nullable=False)
+    password = Column(String, nullable=False)
     refresh_tokens = relationship("RefreshToken", back_populates="user")
     orders = relationship("Order", back_populates="user")
 

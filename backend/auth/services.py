@@ -1,15 +1,13 @@
 import jwt
 import datetime
 import uuid
-from passlib.context import CryptContext
+from passlib.hash import bcrypt
 from sqlalchemy.orm import Session
 from .models import User, RefreshToken, RevokedToken
 from ..database import SessionLocal
 from fastapi import Depends
 
 SECRET_KEY = "mysecret"  # Можно вынести в .env
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_db():
     db = SessionLocal()
@@ -51,7 +49,7 @@ def verify_refresh_token(refresh_token: str, db: Session):
 
 def register_user(username: str, password: str, db: Session):
     """Регистрирует нового пользователя."""
-    hashed_password = pwd_context.hash(password)
+    hashed_password = bcrypt.hash(password.encode('utf-8').decode('utf-8'))
     new_user = User(username=username, password=hashed_password)
     db.add(new_user)
     db.commit()

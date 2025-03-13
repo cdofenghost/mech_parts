@@ -63,7 +63,13 @@ document.getElementById('vinForm').addEventListener('submit', async function (e)
 });
 
 async function parseParts(part_list) {
-    result = '';
+    result = `
+        <style>
+            .collapse-content  {
+                overflow-y: auto;
+            }
+        </style>
+    `;
     counter = 1;
     for (const item of part_list) {
         counter += 1
@@ -88,9 +94,9 @@ async function parseParts(part_list) {
         <input type="checkbox" id="collapse${index+3}" class="collapse-checkbox">
 
         <div class="collapse-content">
+            <img src=http://resource.17vin.com/img/${data['img_src']} height=100 width=100>
             <p><b>Имя:</b>${data['name']}</p>
             <p><b>Имя бренда:</b>${data['brand_name']}</p>
-            <p><b>Ссылка на картинку:</b>${data['img_src']}</p>
         </div>
             `;
         } catch (error) {
@@ -117,13 +123,18 @@ document.getElementById('partForm').addEventListener('submit', async function (e
 
         const data = await response.json();
         responseDiv.innerHTML = `
+        <style>
+            .collapse-content  {
+                overflow-y: auto;
+            }
+        </style>
         <label for="collapse1" class="collapse-button"><b>${data['name']}</b></label>
         <input type="checkbox" id="collapse1" class="collapse-checkbox">
 
         <div class="collapse-content">
+            <img src=http://resource.17vin.com/img/${data['img_src']} height=100 width=100>
             <p><b>Имя:</b>${data['name']}</p>
             <p><b>Имя бренда:</b>${data['brand_name']}</p>
-            <p><b>Ссылка на картинку:</b>${data['img_src']}</p>
         </div>
         `;
     } catch (error) {

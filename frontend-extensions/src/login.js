@@ -31,8 +31,10 @@ document.getElementById('loginForm').addEventListener('submit', async function (
             // Если вход успешен, перенаправляем пользователя
             window.location.href = './search.html';
         } else {
-            // Если вход неудачен, выводим сообщение об ошибке
-            document.getElementById('errorMessage').textContent = data.message || 'Ошибка входа';
+            if (response.status == 404)
+                document.getElementById('errorMessage').textContent = 'Данной учетной записи не существует. Попробуйте зарегистрироваться!';
+            if (response.status == 403)
+                document.getElementById('errorMessage').textContent = 'Проверьте правильность введенных данных!';
         }
     } catch (error) {
         // Обработка ошибок сети или сервера

@@ -6,7 +6,7 @@ import requests
 from ..database import get_db
 from ..models.car import Car, Part
 from ..schemas.car import CarIn, PartIn
-from ..utils.urls import BASE_URL, USER, PW
+from ..utils.urls import BASE_URL, USER, PW, IMG_URL
 from ..utils.token_generator import generate_token
 
 router = APIRouter(prefix="/search")
@@ -23,6 +23,14 @@ def create_db_part(part_in: PartIn) -> Part:
                    part_number=part_in.part_number,
                    img_src=part_in.img_src)
     return db_part
+
+def request_image(img_src: str):
+    response = requests.get(f"{IMG_URL}/{img_src}")
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail="what")
+    
+    return response.json()
 
 def request_car_info(vin: str):
     '''
