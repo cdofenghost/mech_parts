@@ -5,7 +5,7 @@ document.getElementById('vinForm').addEventListener('submit', async function (e)
     const responseDiv = document.getElementById('response');
 
     try {
-        const response = await fetch('/methods/get_car_info', {
+        const response = await fetch('http://127.0.0.1:8000/search/car_info_by_vin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ document.getElementById('partForm').addEventListener('submit', async function (e
     const responseDiv = document.getElementById('response');
 
     try {
-        const response = await fetch('/methods/get_part_by_qpn', {
+        const response = await fetch('/search/part_info_by_number', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

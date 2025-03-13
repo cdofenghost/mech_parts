@@ -13,6 +13,8 @@ class Part(Base):
     part_number = Column(String)
     img_src = Column(String)
 
+    cart_items = relationship("CartItem", back_populates="part")
+
 class Car(Base):
     __tablename__ = "cars"
 
