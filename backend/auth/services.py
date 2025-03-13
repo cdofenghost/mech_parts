@@ -3,7 +3,7 @@ import datetime
 import uuid
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from models import User, RefreshToken, RevokedToken
+from .models import User, RefreshToken, RevokedToken
 from ..database import SessionLocal
 from fastapi import Depends
 
@@ -15,7 +15,7 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-    finally:
+    finally:    
         db.close()
 
 def generate_access_token(user: User):

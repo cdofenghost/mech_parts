@@ -24,8 +24,7 @@ def create_db_part(part_in: PartIn) -> Part:
                    img_src=part_in.img_src)
     return db_part
 
-@router.post("/car_info_by_vin", tags=["Главное"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
-async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
+def request_car_info(vin: str):
     '''
     https://www.17vin.com/doc.html. Раздел 3001.\n
     Выдает информацию о модели машину по заданному VIN.
@@ -33,14 +32,7 @@ async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get
     url_parameters = f"/?vin={vin}"
     token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
 
-    existing_car = db.query(Car).filter(Car.vin_id == vin).first()
-
-    if existing_car:
-        return existing_car
-    
-    # TO-DO: Сгенерировать создание токена по VIN'у
     url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
-    print(url)
     
     # Выполняем GET-запрос к API VIN17
     response = requests.get(url)
@@ -91,7 +83,7 @@ async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get
     body_type = model_list["Body_type_en"]
     price = model_list["Price"]
     price_unit = model_list["Price_unit"]
-
+    
     car_in = CarIn(
         vin_id=vin,
         model_year_from_vin=model_year_from_vin,
@@ -122,24 +114,9 @@ async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get
     )
     db_car = create_db_car(car_in)    
 
-    db.add(db_car)
-    db.commit()
+    return db_car
 
-    return part_data
-
-@router.post("/part_info_by_number", tags=["Главное"]) #4001 (ПОИСК ПО НОМЕРУ)
-async def search_part_info_by_number(query_part_number: str = Body(embed=True), 
-                          query_match_type: str = Body(embed=True, default="smart"),
-                          db: Session = Depends(get_db)):
-    '''
-    https://www.17vin.com/doc.html. Раздел 4001.\n
- 
-    Выдает запчасть по ее номеру запчасти/аксессуара - <b>query_part_number.</b>\n
-    <b>query_match_type</b> - необязательно. Означает тип поиска, принимает строки 3 видов:\n
-        "exact" - строгий поиск\n
-        "inexact" - нестрогий поиск\n
-        "smart" (default) - умный поиск (сначала строгий поиск; если не найдено - нестрогий).\n
-    ''' 
+def request_part_info(query_part_number: str, query_match_type: str):
     url_parameters = f"/?action=search_epc&query_part_number={query_part_number}&query_match_type={query_match_type}"
     token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
 
@@ -154,6 +131,7 @@ async def search_part_info_by_number(query_part_number: str = Body(embed=True),
     part_data = response.json()
     parts = part_data["data"]
 
+    result = []
     for part in parts:
         part_in = PartIn(name=part["Part_name_en"],
                          epc=part["Epc_en"],
@@ -162,11 +140,53 @@ async def search_part_info_by_number(query_part_number: str = Body(embed=True),
                          part_number=part["Partnumber"],
                          img_src=part["Part_img"],
                          )
+        result.append(part_in)
+        
+    return result
+        
+        
+
+@router.post("/car_info_by_vin", tags=["Главное"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
+async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
+
+    existing_car = db.query(Car).filter(Car.vin_id == vin).first()
+
+    if existing_car:
+        return existing_car
+    
+    db_car = request_car_info(vin)
+
+    db.add(db_car)
+    db.commit()
+
+    return db_car
+
+@router.post("/part_info_by_number", tags=["Главное"]) #4001 (ПОИСК ПО НОМЕРУ)
+async def search_part_info_by_number(query_part_number: str = Body(embed=True), 
+                          query_match_type: str = Body(embed=True, default="smart"),
+                          db: Session = Depends(get_db)):
+    '''
+    https://www.17vin.com/doc.html. Раздел 4001.\n
+ 
+    Выдает запчасть по ее номеру запчасти/аксессуара - <b>query_part_number.</b>\n
+    <b>query_match_type</b> - необязательно. Означает тип поиска, принимает строки 3 видов:\n
+        "exact" - строгий поиск\n
+        "inexact" - нестрогий поиск\n
+        "smart" (default) - умный поиск (сначала строгий поиск; если не найдено - нестрогий).\n
+    ''' 
+    existing_part = db.query(Part).filter(Part.part_number == query_part_number).first()
+    
+    if existing_part:
+        return existing_part
+    
+    parts = request_part_info(query_part_number, query_match_type)
+
+    for part_in in parts:
         db_part = create_db_part(part_in)
         db.add(db_part)
         db.commit()
 
-    return parts
+    return parts[0]
 
 @router.post("/interchangables_by_number_and_group_id", tags=["Главное"]) #4004
 async def search_interchangables_by_pn_and_group_id(part_number: str = Body(embed=True), 

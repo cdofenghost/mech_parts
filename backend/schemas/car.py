@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 
 class CarIn(BaseModel):
     vin_id: str = Field()
+    epc: str = Field()
+    epc_id: str = Field()
     model_year_from_vin: str = Field()
     model_year: str = Field()
     made_in: str = Field()

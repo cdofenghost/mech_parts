@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from services import (
+from .services import (
     generate_access_token,
     generate_refresh_token,
     verify_refresh_token,
@@ -9,7 +9,7 @@ from services import (
     logout_user,
     revoke_refresh_token
 )
-from models import User, CartItem
+from .models import User
 from ..models.car import Part
 from pydantic import BaseModel
 
@@ -44,6 +44,7 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
 @auth_router.post("/login")
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Авторизация пользователя."""
+    print("Hello")
     user = db.query(User).filter_by(username=user_data.username).first()
     if not user or not user.password:
         raise HTTPException(status_code=401, detail="Неверные учетные данные")

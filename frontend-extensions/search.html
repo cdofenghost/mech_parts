@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск информации о машине и деталях</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #e26f30;
+            padding: 10px;
+            transition: color 0.3s ease;
+        }
+        .icon-button:hover {
+            color: #0056b3;
+        }
+        body {
+            background: #fff;
+        }
+        form {
+            display: flex; /* Включаем Flexbox */
+            align-items: center; /* Выравниваем элементы по вертикали */
+            gap: 10px; /* Расстояние между элементами */
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex-grow: 1; /* Инпут занимает всё доступное пространство */
+        }
+        .classic {
+            padding: 8px 16px;
+            background-color: #e26f30;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            border-color: #00286f;
+            cursor: pointer;
+            transition: background-color 100ms ease-out;
+        }
+        .classic:hover {
+            background-color: #0056b3;
+            -webkit-transition: background-color 250ms linear;
+            -ms-transition: background-color 250ms linear;
+            transition: background-color 250ms linear;
+        }
+    </style>
+</head>
+<body>
+    <button class="icon-button">
+        <i class="fas fa-shopping-cart"></i>
+    </button>
+    <button class="icon-button">
+        <i class="fas fa-user"></i>
+    </button>
+    <div class="container">
+        <h1>Поиск информации о машине и деталях</h1>
+
+        <!-- Форма для поиска информации о машине по VIN -->
+            <label for="vin">Введите VIN-код:</label>
+            <form id="vinForm">
+
+                <input type="text" id="vin" name="vin" placeholder="Пример: ABC123456789DEF01" required>
+                <button class="classic" type="submit">Найти информацию</button>
+            </form>
+
+        <!-- Форма для поиска информации о детали по номеру -->
+        <label for="partNumber">Введите номер детали:</label>
+        <form id="partForm">
+            <input type="text" id="partNumber" name="partNumber" placeholder="Пример: 123456789AB" required>
+            <button class="classic" type="submit">Найти информацию</button>
+        </form>
+
+        <!-- Блок для вывода результата -->
+        <div id="response" class="response"></div>
+        <div id="response2" class="response"></div>
+    </div>
+    <script src="src/api.js"></script>
+</body>
+</html>
+

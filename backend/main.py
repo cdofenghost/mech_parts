@@ -5,11 +5,13 @@ from .database import Base, init_db, engine
 from .routers import car_parser
 from .routers.cart import cart_router
 from .models.order import Order
+from .auth.routes import auth_router
 
 app = FastAPI()
 
 app.include_router(car_parser.router)
 app.include_router(cart_router)
+app.include_router(auth_router)
 Base.metadata.create_all(bind=engine)
 
 
@@ -21,4 +23,4 @@ def startup():
 
 @app.get("/")
 def test():
-    return FileResponse("C:/Users/Konstantin Denisov/AppData/Local/Programs/Python/Python311/hackathon/mech_parts/frontend-extensions/index.html")    
+    return FileResponse("C:/Users/Konstantin Denisov/AppData/Local/Programs/Python/Python311/hackathon/mech_parts/frontend-extensions/search.html")    

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.order import Order
 from ..models.cart import CartItem
-from ..models.user import User
+from ..auth.models import User
 from ..schemas.cart import CartItemCreate, CartItemResponse
 from ..models.car import Part
 from datetime import datetime
@@ -66,7 +66,7 @@ async def remove_from_cart(user_id: int, part_id: int, db: Session = Depends(get
     db.delete(cart_item)
     db.commit()
 
-    # 🔥 Если корзина пустая - удаляем заказ
+    # Если корзина пустая - удаляем заказ
     remaining_items = db.query(CartItem).filter(CartItem.order_id == order.id).count()
     if remaining_items == 0:
         db.delete(order)
