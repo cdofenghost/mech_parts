@@ -7,29 +7,29 @@ from ..auth.models import User
 from ..schemas.cart import CartItemCreate, CartItemResponse
 from ..models.car import Part
 from datetime import datetime
+from ..auth.services import get_current_user  # Импорт проверки токена
 
 cart_router = APIRouter(prefix="/cart")
 
-@cart_router.post("/add", response_model=CartItemResponse)
-async def add_to_cart(cart_data: CartItemCreate, user_id: int, db: Session = Depends(get_db)):
-    """Добавление товара в корзину с привязкой к заказу."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
+@cart_router.post("/add", response_model=CartItemResponse)
+async def add_to_cart(
+    cart_data: CartItemCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Добавление товара в корзину с привязкой к заказу."""
     part = db.query(Part).filter(Part.id == cart_data.part_id).first()
     if not part:
         raise HTTPException(status_code=404, detail="Запчасть не найдена")
 
-    # Получаем текущий "незавершенный" заказ или создаем новый
-    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "pending").first()
+    order = db.query(Order).filter(Order.user_id == current_user.id, Order.status == "pending").first()
     if not order:
-        order = Order(user_id=user_id, status="pending", created_at=datetime.utcnow())
+        order = Order(user_id=current_user.id, status="pending", created_at=datetime.utcnow())
         db.add(order)
         db.commit()
         db.refresh(order)
 
-    # Проверяем, есть ли уже этот товар в заказе
     cart_item = db.query(CartItem).filter(CartItem.order_id == order.id, CartItem.part_id == cart_data.part_id).first()
 
     if cart_item:
@@ -42,19 +42,28 @@ async def add_to_cart(cart_data: CartItemCreate, user_id: int, db: Session = Dep
     db.refresh(cart_item)
     return cart_item
 
-@cart_router.get("/{user_id}", response_model=list[CartItemResponse])
-async def get_cart(user_id: int, db: Session = Depends(get_db)):
+
+@cart_router.get("/", response_model=list[CartItemResponse])
+async def get_cart(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # Проверка токена
+):
     """Получение содержимого корзины активного заказа пользователя."""
-    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "pending").first()
+    order = db.query(Order).filter(Order.user_id == current_user.id, Order.status == "pending").first()
     if not order:
         raise HTTPException(status_code=404, detail="Нет активного заказа")
 
     return db.query(CartItem).filter(CartItem.order_id == order.id).all()
 
+
 @cart_router.delete("/remove")
-async def remove_from_cart(user_id: int, part_id: int, db: Session = Depends(get_db)):
+async def remove_from_cart(
+    part_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # Проверка токена
+):
     """Удаление конкретного товара из активного заказа."""
-    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "pending").first()
+    order = db.query(Order).filter(Order.user_id == current_user.id, Order.status == "pending").first()
     if not order:
         raise HTTPException(status_code=404, detail="Нет активного заказа")
 
@@ -75,11 +84,13 @@ async def remove_from_cart(user_id: int, part_id: int, db: Session = Depends(get
     return {"message": "Товар удален из корзины"}
 
 
-
-@cart_router.delete("/clear/{user_id}")
-async def clear_cart(user_id: int, db: Session = Depends(get_db)):
+@cart_router.delete("/clear")
+async def clear_cart(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Очистка всей корзины (удаление всех товаров из активного заказа)."""
-    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "pending").first()
+    order = db.query(Order).filter(Order.user_id == current_user.id, Order.status == "pending").first()
     if not order:
         raise HTTPException(status_code=404, detail="Нет активного заказа")
 
