@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
-from models import PartSearchHistory  # Предполагается, что у тебя есть модель истории запросов
+from models.partSearchHistory import PartSearchHistory
+from models.order import Order
 
 class Base(DeclarativeBase):
     pass
@@ -16,6 +17,12 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+def get_orders():
+    """Получает список всех заказов."""
+    with SessionLocal() as db:
+        result = db.execute(select(Order).order_by(Order.created_at.desc()))
+        return result.scalars().all()
 
 def init_db():
     """Создает таблицы в базе данных."""
