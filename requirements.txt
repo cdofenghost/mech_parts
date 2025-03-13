@@ -1,3 +1,6 @@
 googletrans==4.0.0-rc1
 requests>=2.25.1
 openpyxl
+requests
+urllib
+beautifulsoup4
