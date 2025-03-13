@@ -1,10 +1,8 @@
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker,  Session
+from sqlalchemy.orm import sessionmaker
 
-from .models.partSearchHistory import PartSearchHistory
 from .models.order import Order, Base
-from .models.car import Car, Part
-from .models.user import User
+from .models.partSearchHistory import PartSearchHistory
 
 DATABASE_URL = "postgresql://postgres:dofenbase@localhost:5432/MechaBase"
 
@@ -25,8 +23,9 @@ def get_orders():
         return result.scalars().all()
 
 def init_db():
-    """Создает таблицы в базе данных."""
-    Base.metadata.create_all(bind=engine)
+    """Создает все таблицы в БД."""
+
+    Base.metadata.create_all(bind=engine)  # Теперь все таблицы загружены!
 
 def get_frequent_parts(limit=10):
     """Получает список самых популярных запчастей."""
