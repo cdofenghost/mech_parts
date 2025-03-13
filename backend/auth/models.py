@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from mech_parts.backend.database import Base
+from ..database import Base
 
 class User(Base):
     __tablename__ = 'users'

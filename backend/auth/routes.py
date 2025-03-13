@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from mech_parts.backend.database import get_db
+from ..database import get_db
 from services import (
     generate_access_token,
     generate_refresh_token,

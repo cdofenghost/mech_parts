@@ -4,7 +4,7 @@ import uuid
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from models import User, RefreshToken, RevokedToken
-from mech_parts.backend.database import SessionLocal
+from ..database import SessionLocal
 from fastapi import Depends
 
 SECRET_KEY = "mysecret"  # Можно вынести в .env
