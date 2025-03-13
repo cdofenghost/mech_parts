@@ -15,7 +15,6 @@ def create_db_car(car_in: CarIn) -> Car:
     db_car = Car(**car_in.model_dump())
     return db_car
 
-
 @router.post("/get_car_info", tags=["Пункт 3"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
 async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
     '''

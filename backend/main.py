@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 
-from .database import Base, get_engine
+from .database import Base, init_db
 from .routers import car_parser
 
 app = FastAPI()
@@ -12,7 +12,7 @@ app.include_router(car_parser.router)
 def startup():
     print("started up")
     print(Base.metadata.tables)
-    Base.metadata.create_all(bind=get_engine())
+    init_db()
 
 @app.get("/")
 def test():

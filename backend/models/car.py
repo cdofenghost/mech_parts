@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-from ..database import Base
+from sqlalchemy.orm import relationship, DeclarativeBase
+
+class Base(DeclarativeBase):
+    pass
 
 class Part(Base):
     __tablename__ = "parts"
@@ -10,7 +12,6 @@ class Part(Base):
     brand_name = Column(String)
     group_id = Column(String)
     part_number = Column(String)
-
 
 class Car(Base):
     __tablename__ = "cars"

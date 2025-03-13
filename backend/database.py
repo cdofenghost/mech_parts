@@ -1,9 +1,6 @@
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
-from models import PartSearchHistory  # Предполагается, что у тебя есть модель истории запросов
-
-class Base(DeclarativeBase):
-    pass
+from sqlalchemy.orm import sessionmaker, Session
+from .models.car import Part, PartSearchHistory, Base # Предполагается, что у тебя есть модель истории запросов
 
 DATABASE_URL = "postgresql://postgres:dofenbase@localhost:5432/MechaBase"
 
