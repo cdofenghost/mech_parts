@@ -1,41 +1,67 @@
-from flask import Blueprint, request, jsonify
-from auth.services import generate_access_token, generate_refresh_token, verify_refresh_token, register_user
-from auth.models import User
-from werkzeug.security import check_password_hash
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from mech_parts.backend.database import get_db
+from services import (
+    generate_access_token,
+    generate_refresh_token,
+    verify_refresh_token,
+    register_user,
+    logout_user,
+    revoke_refresh_token
+)
+from models import User
+from pydantic import BaseModel
 
-auth_bp = Blueprint('auth', __name__)
+auth_router = APIRouter(prefix="/auth")
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
+# Pydantic-модели
+class UserRegister(BaseModel):
+    username: str
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class TokenRefresh(BaseModel):
+    refresh_token: str
+
+@auth_router.post("/register")
+async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     """Регистрация нового пользователя."""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    if User.query.filter_by(username=username).first():
-        return jsonify({'message': 'Пользователь уже существует'}), 400
-    user = register_user(username, password)
-    return jsonify({'message': 'Регистрация успешна'}), 201
+    if db.query(User).filter_by(username=user_data.username).first():
+        raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
+    user = register_user(user_data.username, user_data.password, db)
+    return {"message": "Регистрация успешна", "user_id": user.id}
+
+@auth_router.post("/login")
+async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Авторизация пользователя."""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    user = User.query.filter_by(username=username).first()
-    if user and check_password_hash(user.password, password):
-        access_token = generate_access_token(user)
-        refresh_token = generate_refresh_token(user)
-        return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 200
-    return jsonify({'message': 'Неверные учетные данные'}), 401
+    user = db.query(User).filter_by(username=user_data.username).first()
+    if not user or not user.password:
+        raise HTTPException(status_code=401, detail="Неверные учетные данные")
 
-@auth_bp.route('/refresh', methods=['POST'])
-def refresh():
+    access_token = generate_access_token(user)
+    refresh_token = generate_refresh_token(user, db)
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
+@auth_router.post("/refresh")
+async def refresh(token_data: TokenRefresh, db: Session = Depends(get_db)):
     """Обновление access-токена с помощью refresh-токена."""
-    data = request.get_json()
-    refresh_token = data.get('refresh_token')
-    user = verify_refresh_token(refresh_token)
-    if user:
-        access_token = generate_access_token(user)
-        return jsonify({'access_token': access_token}), 200
-    return jsonify({'message': 'Недействительный refresh-токен'}), 401
+    user = verify_refresh_token(token_data.refresh_token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Недействительный refresh-токен")
+
+    access_token = generate_access_token(user)
+    return {"access_token": access_token}
+
+@auth_router.post("/logout")
+async def logout(token_data: TokenRefresh, db: Session = Depends(get_db)):
+    """Выход из системы (удаление refresh-токена)."""
+    return logout_user(token_data.refresh_token, db)
+
+@auth_router.post("/revoke")
+async def revoke(token_data: TokenRefresh, db: Session = Depends(get_db)):
+    """Отзыв refresh-токена (занесение в черный список)."""
+    return revoke_refresh_token(token_data.refresh_token, db)
