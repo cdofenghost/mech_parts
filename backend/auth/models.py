@@ -9,6 +9,7 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    cart_items = relationship("CartItem", back_populates="user")  # Связь с корзиной
 
 class RefreshToken(Base):
     __tablename__ = 'refresh_tokens'

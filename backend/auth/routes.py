@@ -9,7 +9,8 @@ from services import (
     logout_user,
     revoke_refresh_token
 )
-from models import User
+from models import User, CartItem
+from ..models.car import Part
 from pydantic import BaseModel
 
 auth_router = APIRouter(prefix="/auth")
@@ -25,6 +26,11 @@ class UserLogin(BaseModel):
 
 class TokenRefresh(BaseModel):
     refresh_token: str
+
+class CartItemSchema(BaseModel):
+    user_id: int
+    part_id: int
+    quantity: int = 1
 
 @auth_router.post("/register")
 async def register(user_data: UserRegister, db: Session = Depends(get_db)):
