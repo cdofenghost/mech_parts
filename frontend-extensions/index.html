@@ -4,56 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Поиск информации о машине и деталях</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-        }
-        form {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -88,78 +39,6 @@
         <!-- Блок для вывода результата -->
         <div id="response" class="response"></div>
     </div>
-
-    <script>
-        // Обработка формы для поиска информации о машине по VIN
-        document.getElementById('vinForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const vin = document.getElementById('vin').value;
-            const responseDiv = document.getElementById('response');
-
-            try {
-                const response = await fetch('/search/car_info_by_vin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ vin }),
-                });
-
-                const data = await response.json();
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            } catch (error) {
-                responseDiv.innerHTML = `Ошибка: ${error.message}`;
-            }
-        });
-
-        // Обработка формы для поиска информации о детали по номеру
-        document.getElementById('partForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const partNumber = document.getElementById('partNumber').value;
-            const responseDiv = document.getElementById('response');
-
-            try {
-                const response = await fetch('/search/part_info_by_number', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        query_part_number: partNumber,
-                        query_match_type: "smart", 
-                    }),
-                });
-
-                const data = await response.json();
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            } catch (error) {
-                responseDiv.innerHTML = `Ошибка: ${error.message}`;
-            }
-        });
-
-        // Обработка формы для поиска заменяемых деталей
-        document.getElementById('interchangeableForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const partNumber = document.getElementById('interchangeablePartNumber').value;
-            const groupId = document.getElementById('groupId').value;
-            const responseDiv = document.getElementById('response');
-
-            try {
-                const response = await fetch('/search/interchangables_by_number_and_group_id', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ part_number: partNumber, 
-                                           group_id: groupId }),
-                });
-
-                const data = await response.json();
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            } catch (error) {
-                responseDiv.innerHTML = `Ошибка: ${error.message}`;
-            }
-        });
-    </script>
+    <script src="src/api.js"></script>
 </body>
 </html>

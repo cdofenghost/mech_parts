@@ -1,0 +1,12 @@
+{
+    "name": "STO",
+    "description": "Search for car parts",
+    "version": "1.0",
+    "manifest_version": 3,
+    "icons": {},
+    "action": {
+        "default_popup":"frontend-extensions/index.html"
+    },
+    "permissions": ["scripting", "activeTab"],
+    "background":{}
+}
