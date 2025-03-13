@@ -4,18 +4,26 @@ from sqlalchemy.orm import Session
 import requests
 
 from ..database import get_db
-from ..models.car import Car
-from ..schemas.car import CarIn
+from ..models.car import Car, Part
+from ..schemas.car import CarIn, PartIn
 from ..utils.urls import BASE_URL, USER, PW
 from ..utils.token_generator import generate_token
 
-router = APIRouter(prefix="/methods")
+router = APIRouter(prefix="/search")
 
 def create_db_car(car_in: CarIn) -> Car:
     db_car = Car(**car_in.model_dump())
     return db_car
 
-@router.post("/get_car_info", tags=["Пункт 3"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
+def create_db_part(part_in: PartIn) -> Part:
+    db_part = Part(name=part_in.name, 
+                   brand_name=part_in.brand_name,
+                   group_id=part_in.group_id,
+                   part_number=part_in.part_number,
+                   part_in=part_in,)
+    return db_part
+
+@router.post("/car_info_by_vin", tags=["Пункт 3"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
 async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
     '''
     https://www.17vin.com/doc.html. Раздел 3001.\n
@@ -118,38 +126,6 @@ async def get_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db
 
     return part_data
 
-def get_all_part_numbers_sync(epc: str, vin: str) -> str:
-    url_parameters = f"/{epc}?action=all_part_number&vin={vin}"
-    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
-
-    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
-
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Ошибка при запросе данных")
-    
-    # Преобразуем ответ в JSON
-    part_data = response.json()
-
-    return part_data["data"]
-
-def part_info(part_number: str):
-    url_parameters = f"/?action=search_epc&query_part_number={part_number}&query_match_type=smart"
-    token = generate_token(username=USER, password=PW, url_parameters=url_parameters)
-
-    url = f"{BASE_URL}{url_parameters}&user={USER}&token={token}"
-    
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Ошибка при запросе данных")
-    
-    # Преобразуем ответ в JSON
-    part_data = response.json()
-
-    return part_data["data"]
-
 @router.post("/get_parts_info", tags=["Пункт 4"]) #4002
 async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = Body(embed=True)):
     '''
@@ -176,7 +152,9 @@ async def get_parts_info(epc: str = Body(embed=True), query_part_number: str = B
     return part_data["data"]
 
 @router.post("/get_part_by_qpn", tags=["Пункт 4"]) #4001 (ПОИСК ПО НОМЕРУ)
-async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match_type: str = Body(embed=True, default="smart")):
+async def get_part_by_qpn(query_part_number: str = Body(embed=True), 
+                          query_match_type: str = Body(embed=True, default="smart"),
+                          db: Session = Depends(get_db)):
     '''
     https://www.17vin.com/doc.html. Раздел 4001.\n
     Тест кейс: query_part_number={query_part_number} query_match_type={query_match_type}\n
@@ -199,8 +177,19 @@ async def get_part_by_qpn(query_part_number: str = Body(embed=True), query_match
     
     # Преобразуем ответ в JSON
     part_data = response.json()
+    parts = part_data["data"]
 
-    return part_data["data"]
+    for part in parts:
+        part_in = PartIn(name=part["Part_name_en"],
+                         brand_name=part["Brand_name_en"],
+                         group_id=part["Group_id"],
+                         part_number=part["Partnumber"],
+                         img_src=part["Part_img"])
+        db_part = create_db_part(part_in)
+        db.add(db_part)
+        db.commit()
+
+    return parts
 
 @router.post("/get_interchange", tags=["Пункт 4"]) #4004
 async def get_interchange_by_pn_and_group_id(part_number: str = Body(embed=True), group_id: str = Body(embed=True)):

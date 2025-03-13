@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
-from models.partSearchHistory import PartSearchHistory
-from models.order import Order
+from sqlalchemy.orm import sessionmaker,  Session
 
-class Base(DeclarativeBase):
-    pass
+from .models.partSearchHistory import PartSearchHistory
+from .models.order import Order, Base
+from .models.car import Car, Part
+from .models.user import User
 
 DATABASE_URL = "postgresql://postgres:dofenbase@localhost:5432/MechaBase"
 

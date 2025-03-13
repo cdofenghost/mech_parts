@@ -25,3 +25,12 @@ class CarIn(BaseModel):
     body_type: str = Field()
     price: str = Field()
     price_unit: str = Field()
+
+class PartIn(BaseModel):
+    name: str = Field()
+    epc: str = Field()
+    brand_name: str = Field()
+    group_id: str = Field()
+    part_number: str = Field()
+    img_src: str = Field()
+

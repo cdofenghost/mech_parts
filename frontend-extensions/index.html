@@ -52,41 +52,71 @@
     </style>
 </head>
 <body>
-    <h1>Введите VIN-код автомобиля</h1>
-    <input type="text" id="vinInput" placeholder="Введите VIN">
-    <button onclick="getCarInfo()">Получить информацию</button>
+    <div class="container">
+        <h1>Поиск информации о машине и деталях</h1>
 
-    <div id="result"></div>
+        <!-- Форма для ввода VIN-кода -->
+        <form id="vinForm">
+            <label for="vin">Введите VIN-код:</label>
+            <input type="text" id="vin" name="vin" placeholder="Пример: ABC123456789DEF01" required>
+            <button type="submit">Получить информацию о машине</button>
+        </form>
+
+        <!-- Форма для ввода номера детали -->
+        <form id="partForm">
+            <label for="qpn">Введите номер детали:</label>
+            <input type="text" id="qpn" name="qpn" placeholder="Пример: 123456789AB" required>
+            <button type="submit">Получить информацию о детали</button>
+        </form>
+
+        <!-- Блок для вывода результата -->
+        <div id="response" class="response"></div>
+    </div>
 
     <script>
-        async function getCarInfo() {
-            const vin = document.getElementById('vinInput').value;
-
-            if (!vin) {
-                alert('Пожалуйста, введите VIN-код.');
-                return;
-            }
+        // Обработка формы для VIN-кода
+        document.getElementById('vinForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const vin = document.getElementById('vin').value;
+            const responseDiv = document.getElementById('response');
 
             try {
-                const response = await fetch('/methods/get_car_info/', {
+                const response = await fetch('/methods/get_car_info', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ vin: vin })
+                    body: JSON.stringify({ vin }),
                 });
 
-                if (!response.ok) {
-                    throw new Error('Ошибка при получении данных');
-                }
+                const data = await response.json();
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+            }
+        });
+
+        // Обработка формы для номера детали
+        document.getElementById('partForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const qpn = document.getElementById('qpn').value;
+            const responseDiv = document.getElementById('response');
+
+            try {
+                const response = await fetch('/methods/get_part_by_qpn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query_part_number: qpn,  query_match_type: "smart" }),
+                });
 
                 const data = await response.json();
-                document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
             } catch (error) {
-                console.error('Ошибка:', error);
-                document.getElementById('result').innerText = 'Произошла ошибка при запросе к серверу.';
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
             }
-        }
+        });
     </script>
 </body>
 </html>
