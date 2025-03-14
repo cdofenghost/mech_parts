@@ -14,34 +14,41 @@ def get_prices(part_number: str) -> list[float]:
 
     # Оптимизированные настройки Chrome
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Запуск без UI
-    chrome_options.add_argument("--disable-gpu")  # Отключение GPU для ускорения
-    chrome_options.add_argument("--no-sandbox")  # Улучшение стабильности
-    chrome_options.add_argument("--disable-dev-shm-usage")  
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Скрытие Selenium
-    chrome_options.add_argument("--blink-settings=imagesEnabled=false")  # Отключение загрузки картинок
 
-    service = Service()  
+    chrome_options.add_argument("--headless=new")  # Новый headless (быстрее)
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("--blink-settings=imagesEnabled=false")  
+    chrome_options.page_load_strategy = "none"  # Не ждём полной загрузки
+
+    service = Service()
+
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
         driver.get(url)
+        
+        # Ожидание загрузки хотя бы DOM (ускоряет процесс)
+        WebDriverWait(driver, 3).until(lambda d: d.execute_script("return document.readyState") == "interactive")
 
-        # Ожидание минимального количества элементов (ускоряет процесс)
-        WebDriverWait(driver, 5).until(
+        # Ждём появления хотя бы одной цены
+        WebDriverWait(driver, 3).until(
             EC.presence_of_element_located((By.CLASS_NAME, "price-block__price"))
         )
 
-        # Получение цен напрямую через JavaScript (быстрее, чем find_elements)
-        prices = driver.execute_script("""
-            return [...document.querySelectorAll('.price-block__price')]
-                .map(el => el.innerText.replace('₽', '').replace(/\s/g, ''))
-                .filter(text => !isNaN(text))
-                .map(Number);
+        # Получаем цены через JS
+        prices = driver.execute_script(r"""
+            return Array.from(document.querySelectorAll('.price-block__price'))
+                .map(el => el.innerText.replace(/\D/g, ''))  // Убираем всё, кроме цифр
+                .filter(text => text.length > 0)  // Убираем пустые значения
+                .map(Number);  // Преобразуем в числа
         """)
 
         if not prices:
             raise Exception("Цены не найдены")
+
 
         return prices
 
