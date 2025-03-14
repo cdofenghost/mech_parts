@@ -1,3 +1,5 @@
+import * as cart from './cart.js'
+
 document.getElementById('vinForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const vin = document.getElementById('vin').value;
@@ -95,9 +97,10 @@ async function parseParts(part_list) {
 
         <div class="collapse-content">
             <img src=http://resource.17vin.com/img/${data['img_src']} height=100 width=100>
-            <p><b>Имя: </b>${data['name']}</p>
+            <p id=""><b>Имя: </b>${data['name']}</p>
             <p><b>Имя бренда: </b>${data['brand_name']}</p>
             <p><b>Средняя цена: </b>${data['price']}₽</p>
+            <p id="part-number"><b>Номер детали: </b>${data['part_number']}</p>
             <button id="add-to-cart">Добавить в корзину</button>
         </div>
             `;
@@ -105,6 +108,17 @@ async function parseParts(part_list) {
             console.log(`Ошибка: ${error.message}`);
         }
     };
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(result, 'text/html');
+
+    const partNumber = doc.getElementById('part-number');
+
+    // try {
+    doc.getElementById('add-to-cart').addEventListener('click', cart.addToCart(partNumber, 10));
+    // }
+    // catch (error) { ; }
+    
     return result;
 }
 
@@ -138,9 +152,20 @@ document.getElementById('partForm').addEventListener('submit', async function (e
             <p><b>Имя: </b>${data['name']}</p>
             <p><b>Имя бренда: </b>${data['brand_name']}</p>
             <p><b>Средняя цена: </b>${data['price']}₽</p>
+            <p id="part-number"><b>Номер детали: </b>${data['part_number']}</p>
             <button id="add-to-cart">Добавить в корзину</button>
         </div>
         `;
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(responseDiv, 'text/html');
+    
+        const partNumber = doc.getElementById('part-number');
+    
+        try {
+            doc.getElementById('add-to-cart').addEventListener('click', cart.addToCart(partNumber, 10));
+        }
+        catch (error) { ; }
     } catch (error) {
         responseDiv.innerHTML = `Ошибка: ${error.message}`;
     }

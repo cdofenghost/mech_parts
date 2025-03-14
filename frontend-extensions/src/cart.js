@@ -3,20 +3,7 @@ cart_items = []
 
 document.getElementById('openOverlay').addEventListener('click', function() {
     const overlay = document.getElementById('overlay');
-    const mainDiv = document.getElementById('cart-container');
 
-    mainDiv.innerHTML = `
-                <h1>Ваша корзина</h1>
-                <div class="cart-items">
-                ${parseItems(cart_items)}
-                </div>
-
-                <!-- Итого -->
-                <div class="cart-summary">
-                    <h2>Итого: <span id="total-price">80 000</span> ₽</h2>
-                    <button class="checkout-btn">Оформить заказ</button>
-                </div>
-    `
     overlay.classList.add('active');
 });
 
@@ -50,6 +37,7 @@ function parseItems(cart_items) {
 
     return result;
 }
+
 async function addToCart(productId, quantity) {
     const response = await fetch('http://127.0.0.1:8000/cart/add', {
         method: 'POST',
@@ -60,7 +48,7 @@ async function addToCart(productId, quantity) {
     })
     .then(response => response.json())
     .then(data => {
-        cart_items.add(data);
+        cart_items.push(data);
         console.log(data);
     });
 }
@@ -78,8 +66,6 @@ function removeFromCart(productId, quantity) {
         console.log('Товар добавлен в корзину:', data);
     });
 }
-
-document.getElementById('add-to-cart').addEventListener('click', addToCart("Предмет", 10));
 
 // Цены товаров
 const prices = {

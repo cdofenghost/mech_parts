@@ -59,14 +59,19 @@ def get_current_user(token: str = Security(oauth2_scheme), db: Session = Depends
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: int = payload.get("user_id")
         if user_id is None:
+            print("Неверный токен")
             raise HTTPException(status_code=401, detail="Неверный токен")
         user = db.query(User).filter(User.id == user_id).first()
         if user is None:
+            print("Пользователь не найден")
             raise HTTPException(status_code=401, detail="Пользователь не найден")
         return user
+    
     except jwt.ExpiredSignatureError:
+        print("Токен истек")
         raise HTTPException(status_code=401, detail="Токен истек")
     except jwt.InvalidTokenError:
+        print("Недействительный токен")
         raise HTTPException(status_code=401, detail="Недействительный токен")
 
 def register_user(username: str, password: str, db: Session):
