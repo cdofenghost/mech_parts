@@ -14,6 +14,7 @@ def get_prices(part_number: str) -> list[float]:
 
     # Оптимизированные настройки Chrome
     chrome_options = Options()
+
     chrome_options.add_argument("--headless=new")  # Новый headless (быстрее)
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
@@ -23,6 +24,7 @@ def get_prices(part_number: str) -> list[float]:
     chrome_options.page_load_strategy = "none"  # Не ждём полной загрузки
 
     service = Service()
+
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
@@ -46,6 +48,7 @@ def get_prices(part_number: str) -> list[float]:
 
         if not prices:
             raise Exception("Цены не найдены")
+
 
         return prices
 
