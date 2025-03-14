@@ -2,7 +2,7 @@ import openai
 import logging
 import sys
 import os
-from key import api_key
+
 
 
 # Add the parent directory to the Python path (if you need it for database.py)
@@ -14,7 +14,7 @@ sys.path.append(parent_dir)
 # from database import get_frequent_parts, get_user_search_history
 
 # Initialize the OpenAI client
-client = openai.OpenAI(api_key="") # Replace with your actual API key or load it from a file
+# client = openai.OpenAI(api_key="") # Replace with your actual API key or load it from a file
 
 def setup_logging():
     logging.basicConfig(
