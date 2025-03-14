@@ -11,9 +11,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
             margin: 0;
         }
-        .register-container {
+        .login-container {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -21,59 +22,50 @@
             width: 300px;
             text-align: center;
         }
-        .register-container h2 {
+        .login-container h2 {
             margin-bottom: 20px;
         }
-        .register-container input {
-            width: 100%;
+        .login-container input {
+            width: 92%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        .register-container button {
+        .login-container button {
             width: 100%;
             padding: 10px;
-            background-color: #007BFF;
+            background-color: #e26f30;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        .register-container button:hover {
+        .login-container button:hover {
             background-color: #0056b3;
+            transition: background-color 0.1s ease;
         }
-        .login-link {
+        .register-link {
             margin-top: 15px;
             display: block;
-            color: #007BFF;
+            color: #e26f30;
             text-decoration: none;
+            transition: color 0.3s ease;
         }
-        .login-link:hover {
+        .register-link:hover {
             text-decoration: underline;
+            color: #0056b3;
+            transition: color 0.1s ease;
         }
         .error-message {
             color: red;
             margin-top: 10px;
         }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #e26f30;
-            border-radius: 4px;
-            border-color: #e26f30;
-            transition: border-color 0.1s ease;
-        }
-        input:focus {
-            outline: none;
-            border: 2px solid #0056b3;
-            transition: border-color 0.3s ease;
-        }
     </style>
 </head>
 <body>
-    <div class="register-container">
+    <div class="login-container">
         <h2>Регистрация</h2>
         <form id="registerForm">
             <input type="email" id="email" name="email" placeholder="Email" required>
@@ -82,7 +74,7 @@
             <button type="submit">Зарегистрироваться</button>
         </form>
         <div id="errorMessage" class="error-message"></div>
-        <a href="./authorization.html" class="login-link">Уже есть аккаунт? Войдите</a>
+        <a href="./authorization.html" class="register-link">Уже есть аккаунт? Войдите</a>
     </div>
 
     <script src="src/register.js"></script>
