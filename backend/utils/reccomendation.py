@@ -14,7 +14,7 @@ sys.path.append(parent_dir)
 # from database import get_frequent_parts, get_user_search_history
 
 # Initialize the OpenAI client
-client = openai.OpenAI(api_key="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") # Replace with your actual API key or load it from a file
+client = openai.OpenAI(api_key="") # Replace with your actual API key or load it from a file
 
 def setup_logging():
     logging.basicConfig(
