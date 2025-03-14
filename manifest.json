@@ -1,0 +1,13 @@
+{
+    "name": "STO",
+    "description": "Расширение для поиска автозапчастей через API 17VIN",
+    "version": "1.0",
+    "manifest_version": 3,
+    "icons": {},
+    "action": {
+        "default_popup":"frontend-extensions/authorization.html"
+    },
+    "host_permissions": ["http://127.0.0.1:8000/"],
+    "permissions": ["scripting", "activeTab"],
+    "background":{}
+}
