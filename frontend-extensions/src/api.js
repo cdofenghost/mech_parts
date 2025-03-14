@@ -95,8 +95,10 @@ async function parseParts(part_list) {
 
         <div class="collapse-content">
             <img src=http://resource.17vin.com/img/${data['img_src']} height=100 width=100>
-            <p><b>Имя:</b>${data['name']}</p>
-            <p><b>Имя бренда:</b>${data['brand_name']}</p>
+            <p><b>Имя: </b>${data['name']}</p>
+            <p><b>Имя бренда: </b>${data['brand_name']}</p>
+            <p><b>Средняя цена: </b>${data['price']}₽</p>
+            <button id="add-to-cart">Добавить в корзину</button>
         </div>
             `;
         } catch (error) {
@@ -133,8 +135,10 @@ document.getElementById('partForm').addEventListener('submit', async function (e
 
         <div class="collapse-content">
             <img src=http://resource.17vin.com/img/${data['img_src']} height=100 width=100>
-            <p><b>Имя:</b>${data['name']}</p>
-            <p><b>Имя бренда:</b>${data['brand_name']}</p>
+            <p><b>Имя: </b>${data['name']}</p>
+            <p><b>Имя бренда: </b>${data['brand_name']}</p>
+            <p><b>Средняя цена: </b>${data['price']}₽</p>
+            <button id="add-to-cart">Добавить в корзину</button>
         </div>
         `;
     } catch (error) {

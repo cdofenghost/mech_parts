@@ -11,6 +11,7 @@ class Part(Base):
     brand_name = Column(String)
     group_id = Column(String)
     part_number = Column(String)
+    price = Column(String)
     img_src = Column(String)
 
     cart_items = relationship("CartItem", back_populates="part")

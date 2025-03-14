@@ -8,6 +8,7 @@ from ..models.car import Car, Part
 from ..schemas.car import CarIn, PartIn
 from ..utils.urls import BASE_URL, USER, PW, IMG_URL
 from ..utils.token_generator import generate_token
+from ..utils.price_parser import get_average_price
 
 router = APIRouter(prefix="/search")
 
@@ -21,6 +22,7 @@ def create_db_part(part_in: PartIn) -> Part:
                    brand_name=part_in.brand_name,
                    group_id=part_in.group_id,
                    part_number=part_in.part_number,
+                   price=part_in.price,
                    img_src=part_in.img_src)
     return db_part
 
@@ -51,7 +53,7 @@ def request_car_info(vin: str):
     
     # Преобразуем ответ в JSON
     part_data = response.json()
-
+    print(part_data )
     # First Level
     code = part_data["code"]
 
@@ -146,6 +148,7 @@ def request_part_info(query_part_number: str, query_match_type: str):
                          brand_name=part["Brand_name_en"],
                          group_id=part["Group_id"],
                          part_number=part["Partnumber"],
+                         price="1200",
                          img_src=part["Part_img"],
                          )
         result.append(part_in)
@@ -156,9 +159,10 @@ def request_part_info(query_part_number: str, query_match_type: str):
 
 @router.post("/car_info_by_vin", tags=["Главное"]) #3001 (ПОИСК ДАННЫХ О МАШИНЕ ПО VIN)
 async def search_car_info(vin: str = Body(embed=True), db: Session = Depends(get_db)):
-
+    
     existing_car = db.query(Car).filter(Car.vin_id == vin).first()
 
+    print(existing_car)
     if existing_car:
         return existing_car
     

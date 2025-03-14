@@ -48,10 +48,10 @@ def get_prices(part_number: str) -> list[float]:
     finally:
         driver.quit()
 
-def get_average_price(part_number: str) -> float:
+def get_average_price(part_number: str) -> int:
     """Возвращает среднюю цену детали."""
     prices = get_prices(part_number)
-    return sum(prices) / len(prices) if prices else 0
+    return int(sum(prices) / len(prices) if prices else 0)
 
 if __name__ == "__main__":
     part_number = "51350SAAE01"

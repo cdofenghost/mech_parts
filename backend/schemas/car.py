@@ -33,6 +33,7 @@ class PartIn(BaseModel):
     epc: str = Field()
     brand_name: str = Field()
     group_id: str = Field()
+    price: str = Field()
     part_number: str = Field()
     img_src: str = Field()
 

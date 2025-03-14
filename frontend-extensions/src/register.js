@@ -34,7 +34,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
         if (response.ok) {
             // Если регистрация успешна, перенаправляем пользователя
-            window.location.href = './authorization';
+            window.location.href = '../search.html';
         } else {
             // Если регистрация неудачна, выводим сообщение об ошибке
             document.getElementById('errorMessage').textContent = data.message || 'Ошибка регистрации';
